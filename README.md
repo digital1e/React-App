@@ -1,70 +1,88 @@
-# Getting Started with Create React App
+## What is Terraform?
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+Terraform is a tool for building, changing, and versioning infrastructure safely and efficiently. Terraform can manage existing and popular service providers as well as custom in-house solutions.
 
-## Available Scripts
+There are mainly 4 files in this project as of now
+1. main.tf
+2. variables.tf
+3. terrsform.tfvars
+4. outputs.tf
 
-In the project directory, you can run:
+**main.tf**
+This file is the entry point for the terraform to run the script, which contains the definition of resources to deploy. Below are the resources section which will deploy once terraform executes the script.
 
-### `npm start`
+This block is used by terraform internally to initialize the scripts and to recognize which cloud is used.
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
+```terraform {
+  required_providers {
+    azurerm = {
+      source  = "hashicorp/azurerm"
+      version = "=2.46.0"
+    }
+  }
+}
 
-The page will reload if you make edits.\
-You will also see any lint errors in the console.
+provider "azurerm" {
+  features {}
+}```
 
-### `npm test`
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+This block is used for the resource group creation in which the resources resides.
+Note - if you update the resource group name next time terraform will create new resource group and create the resources in it.
 
-### `npm run build`
+```resource "azurerm_resource_group" "rg" {
+  **name     = var.resource_group_name**
+  location = var.resource_group_location
+}```
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+This block is used to create the CDN Profile where name is the CDN Profile name which gets created.
+azurerm_resource_group.rg.name - this is reffering the resource group name to be used.
+Note - if you update the CDN Profile name next time terraform will creates new resource.
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+```resource "azurerm_cdn_profile" "cdnprofile" {
+  name                = "cdn-profile-1"
+  location            = azurerm_resource_group.rg.location
+  resource_group_name = azurerm_resource_group.rg.name
+  sku                 = "Standard_Verizon"
+}```
 
-### `npm run eject`
 
-**Note: this is a one-way operation. Once you `eject`, you can’t go back!**
+This block will create CDN Endpoint for the above CDN Profile.
+azurerm_cdn_profile.cdnprofile.name - this is reffering the CDN Profile to be used.
+Note - if you update the CDN Endpoint name next time terraform will creates new resource.
 
-If you aren’t satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+```resource "azurerm_cdn_endpoint" "cdnendpoint" {
+  name                = "cdn-endpoint-1"
+  profile_name        = azurerm_cdn_profile.cdnprofile.name
+  location            = azurerm_resource_group.rg.location
+  resource_group_name = azurerm_resource_group.rg.name
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you’re on your own.
+  origin {
+    name      = "cdnendpoint1"
+    host_name = "www.contoso.com"
+  }```
 
-You don’t have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn’t feel obligated to use this feature. However we understand that this tool wouldn’t be useful if you couldn’t customize it when you are ready for it.
 
-## Learn More
+  **variables.tf**
+  This file is used to define the variables type and optionally set a default value which will be used any where in the script.
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+  ```variable "resource_group_name" {
+    type    = string
+    description = "Resource Group name in Azure."
+}```
 
-To learn React, check out the [React documentation](https://reactjs.org/).
 
-### Code Splitting
+**terrsform.tfvars**
+This file is used to set the actual values of the variables dynamically. The variables.tfvars file is used to define variables and the *.tf file declare that the variable exists. So we use a *.tfvar file to load in defaults as they are automatically loaded without any additional command line option.
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+```resource_group_name     = "rg1"
+resource_group_location = "West Europe"```
 
-### Analyzing the Bundle Size
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+**outputs.tf**
+This file is used for output declarations which can appear anywhere in your Terraform configuration files. However, putting them into a separate file called outputs.tf to make it easier for users to understand your configuration and what outputs to expect from it.
 
-### Making a Progressive Web App
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+```output "resource_group_id" {
+    value = azurerm_resource_group.rg.id
+}```
