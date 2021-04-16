@@ -9,7 +9,6 @@ There are mainly 4 files in this project as of now
 4. outputs.tf
 
 ###### main.tf
-
 This file is the entry point for the terraform to run the script, which contains the definition of resources to deploy. Below are the resources section which will deploy once terraform executes the script.
 
 This block is used by terraform internally to initialize the scripts and to recognize which cloud is used.
