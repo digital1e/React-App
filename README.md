@@ -7,8 +7,8 @@ There are mainly 4 files in this project as of now
 2. variables.tf
 3. terrsform.tfvars
 4. outputs.tf
-
 <br/>
+
 #### main.tf
 This file is the entry point for the terraform to run the script, which contains the definition of resources to deploy. Below are the resources section which will deploy once terraform executes the script.
 
@@ -28,10 +28,10 @@ provider "azurerm" {
   features {}
 }
 ```
-
 <br/>
+
 This block is used for the resource group creation in which the resources resides.
-> :point_right: Note - if you update the resource group name next time terraform will create new resource group and create the resources in it.
+> Note - if you update the resource group name next time terraform will create new resource group and create the resources in it.
 
 ```
 resource "azurerm_resource_group" "rg" {
@@ -39,8 +39,8 @@ resource "azurerm_resource_group" "rg" {
   location = var.resource_group_location
 }
 ```
-
 <br/>
+
 This block is used to create the CDN Profile where name is the CDN Profile name which gets created.
 azurerm_resource_group.rg.name - this is reffering the resource group name to be used.
 > Note - if you update the CDN Profile name next time terraform will creates new resource.
@@ -53,8 +53,8 @@ resource "azurerm_cdn_profile" "cdnprofile" {
   sku                 = "Standard_Verizon"
 }
 ```
-
 <br/>
+
 This block will create CDN Endpoint for the above CDN Profile.
 azurerm_cdn_profile.cdnprofile.name - this is reffering the CDN Profile to be used.
 > Note - if you update the CDN Endpoint name next time terraform will creates new resource.
